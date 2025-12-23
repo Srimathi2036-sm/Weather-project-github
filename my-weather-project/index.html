@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather kandupidikanum</title>
+  <style>
+    :root{
+      --bg:#f3fbff;
+      --card:#ffffff;
+      --accent:#2b8cff;
+      --muted:#6b7280;
+      --glass: rgba(255,255,255,0.7);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:24px;
+      background: linear-gradient(180deg,#e9f5ff 0%, #f8fcff 100%);
+      padding:28px;
+    }
+    .app {
+      width:100%;
+      max-width:760px;
+      background:var(--card);
+      border-radius:16px;
+      box-shadow: 0 10px 30px rgba(20,40,80,0.08);
+      padding:22px;
+      border: 1px solid rgba(37,99,235,0.06);
+    }
+    .header {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+    .title {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .logo {
+      width:48px;height:48px;border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),#6ee7b7);
+      display:flex;align-items:center;justify-content:center;
+      color:#fff;font-weight:700;font-size:18px;
+      box-shadow: 0 6px 18px rgba(43,140,255,0.14);
+    }
+    h1{margin:0;font-size:18px}
+    p.subtitle{margin:0;color:var(--muted);font-size:13px}
+    .controls {display:flex;gap:8px;align-items:center}
+    input[type="text"]{
+      padding:10px 12px;border-radius:12px;border:1px solid #e6eefc;
+      width:300px;outline:none;font-size:14px;background:linear-gradient(180deg,#fff,#fbfdff);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    button.search {
+      padding:10px 14px;border-radius:12px;border:none;background:var(--accent);color:#fff;
+      cursor:pointer;font-weight:600;box-shadow: 0 6px 12px rgba(43,140,255,0.16);
+    }
+    .info {
+      margin-top:12px;display:grid;grid-template-columns: 1fr 320px;gap:18px;
+    }
+    .card-left{
+      padding:18px;border-radius:12px;background:linear-gradient(180deg,var(--glass),rgba(255,255,255,0.9));
+      border:1px solid rgba(16,185,129,0.03);
+    }
+    .loc {font-size:16px;font-weight:700}
+    .localtime {font-size:13px;color:var(--muted);margin-top:4px}
+    .big-row{display:flex;align-items:center;gap:16px;margin-top:14px}
+    .temp {
+      font-size:46px;font-weight:700;
+    }
+    .condition {
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .condition img{width:64px;height:64px}
+    .meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+    .meta {
+      background:rgba(15,23,42,0.03);padding:10px;border-radius:8px;font-size:13px;
+    }
+    .card-right{
+      padding:18px;border-radius:12px;background:linear-gradient(180deg,#fff,#fcfdff);
+      border:1px solid rgba(2,6,23,0.03);
+    }
+    .right-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .label{font-size:13px;color:var(--muted)}
+    .value{font-size:16px;font-weight:700}
+    .error{margin-top:12px;color:#b91c1c;font-weight:600}
+    footer.note{margin-top:14px;font-size:12px;color:var(--muted)}
+    @media (max-width:840px){
+      .info{grid-template-columns:1fr; }
+      input[type="text"]{ width:160px }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Weather kandupidikanum">
+    <div class="header">
+      <div class="title">
+        <div class="logo">WK</div>
+        <div>
+          <h1>Weather kandupidikanum</h1>
+          <p class="subtitle">Enter any location worldwide — shows current weather details</p>
+        </div>
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <input id="locationInput" type="text" placeholder="Enter city or place (e.g. Mumbai, London, 94016)" aria-label="Location input"/>
+        <button id="searchBtn" class="search">Search</button>
+      </div>
+    </div>
+
+    <div id="resultArea" class="info" aria-live="polite">
+      <!-- left card -->
+      <div class="card-left" id="leftCard">
+        <div class="loc" id="locName">Search a location</div>
+        <div class="localtime" id="localtime">Local time will appear here</div>
+
+        <div class="big-row">
+          <div class="temp" id="temp">-- °C</div>
+          <div class="condition">
+            <img id="icon" src="" alt="" style="display:none"/>
+            <div id="condText" style="font-weight:600;color:#374151">–</div>
+            <div id="feel" style="font-size:13px;color:var(--muted)">Feels like: –</div>
+          </div>
+        </div>
+
+        <div class="meta-grid" id="meta">
+          <div class="meta">Humidity: <strong id="humidity">-- %</strong></div>
+          <div class="meta">Wind: <strong id="wind">-- kph</strong></div>
+          <div class="meta">Pressure: <strong id="pressure">-- mb</strong></div>
+          <div class="meta">Precip: <strong id="precip">-- mm</strong></div>
+          <div class="meta">Cloud: <strong id="cloud">-- %</strong></div>
+          <div class="meta">Visibility: <strong id="vis">-- km</strong></div>
+        </div>
+      </div>
+
+      <!-- right card -->
+      <div class="card-right" id="rightCard">
+        <div class="right-row">
+          <div>
+            <div class="label">Country / Region</div>
+            <div class="value" id="country">—</div>
+          </div>
+          <div>
+            <div class="label">Wind dir</div>
+            <div class="value" id="wind_dir">—</div>
+          </div>
+        </div>
+
+        <div class="right-row">
+          <div>
+            <div class="label">UV index</div>
+            <div class="value" id="uv">—</div>
+          </div>
+          <div>
+            <div class="label">Gust</div>
+            <div class="value" id="gust">—</div>
+          </div>
+        </div>
+
+        <div class="right-row">
+          <div>
+            <div class="label">Wind chill</div>
+            <div class="value" id="windchill">—</div>
+          </div>
+          <div>
+            <div class="label">Dew point</div>
+            <div class="value" id="dewpoint">—</div>
+          </div>
+        </div>
+
+        <div id="extraInfo" style="margin-top:8px;font-size:13px;color:var(--muted)">
+          <div>Short rad / DNI / GTI: <span id="rad">—</span></div>
+        </div>
+
+        <div id="errorMsg" class="error" style="display:none"></div>
+        <footer class="note">Tip: The API key is embedded here for demo — for production route requests through a backend.</footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CONFIG: put your API key here ======
+    // You provided: a9d3ae5b433249ab97282845251212
+    // If you prefer, replace with your own key or move to backend for production.
+    const API_KEY = "a9d3ae5b433249ab97282845251212";
+
+    // Elements
+    const locInput = document.getElementById('locationInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // Display elements
+    const locName = document.getElementById('locName');
+    const localtime = document.getElementById('localtime');
+    const tempEl = document.getElementById('temp');
+    const iconEl = document.getElementById('icon');
+    const condText = document.getElementById('condText');
+    const feel = document.getElementById('feel');
+    const humidity = document.getElementById('humidity');
+    const wind = document.getElementById('wind');
+    const pressure = document.getElementById('pressure');
+    const precip = document.getElementById('precip');
+    const cloud = document.getElementById('cloud');
+    const vis = document.getElementById('vis');
+    const country = document.getElementById('country');
+    const wind_dir = document.getElementById('wind_dir');
+    const uv = document.getElementById('uv');
+    const gust = document.getElementById('gust');
+    const windchill = document.getElementById('windchill');
+    const dewpoint = document.getElementById('dewpoint');
+    const rad = document.getElementById('rad');
+
+    // Helper to fetch weather from WeatherAPI.com (current)
+    async function fetchWeather(location) {
+      // Reset UI
+      errorMsg.style.display = 'none';
+      errorMsg.textContent = '';
+      condText.textContent = 'Loading...';
+      iconEl.style.display = 'none';
+
+      try {
+        const endpoint = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(location)}&aqi=no`;
+        const res = await fetch(endpoint);
+        if (!res.ok) {
+          // read error message if API returned JSON error
+          const text = await res.text();
+          let message = `API request failed (status ${res.status})`;
+          try {
+            const json = JSON.parse(text);
+            if (json && json.error && json.error.message) message = json.error.message;
+          } catch(e){}
+          throw new Error(message);
+        }
+        const data = await res.json();
+        renderWeather(data);
+      } catch (err) {
+        showError(err.message || 'Unknown error');
+      }
+    }
+
+    function showError(text){
+      errorMsg.style.display = 'block';
+      errorMsg.textContent = text;
+      condText.textContent = '—';
+      locName.textContent = 'Search a location';
+      localtime.textContent = 'Local time will appear here';
+      tempEl.textContent = '-- °C';
+      iconEl.style.display = 'none';
+      // clear some fields
+      humidity.textContent = '-- %';
+      wind.textContent = '-- kph';
+      pressure.textContent = '-- mb';
+      precip.textContent = '-- mm';
+      cloud.textContent = '-- %';
+      vis.textContent = '-- km';
+      country.textContent = '—';
+      wind_dir.textContent = '—';
+      uv.textContent = '—';
+      gust.textContent = '—';
+      windchill.textContent = '—';
+      dewpoint.textContent = '—';
+      rad.textContent = '—';
+    }
+
+    function renderWeather(data){
+      // Expecting the WeatherAPI "current.json" structure (same as your sample)
+      const loc = data.location || {};
+      const cur = data.current || {};
+      const cond = cur.condition || {};
+
+      locName.textContent = `${loc.name || '—'}, ${loc.region || ''}`.trim();
+      localtime.textContent = `Local: ${loc.localtime || '—'}`;
+
+      // temperatures
+      const c = (cur.temp_c !== undefined) ? `${cur.temp_c.toFixed(1)} °C` : '--';
+      tempEl.textContent = c;
+
+      // condition & icon
+      condText.textContent = cond.text || '--';
+      if (cond.icon) {
+        // some icons come with protocol-relative URL like "//cdn.weatherapi.com/..."
+        let url = cond.icon.startsWith('//') ? 'https:' + cond.icon : cond.icon;
+        iconEl.src = url;
+        iconEl.alt = cond.text || 'weather icon';
+        iconEl.style.display = 'block';
+      } else {
+        iconEl.style.display = 'none';
+      }
+
+      feel.textContent = `Feels like: ${ (cur.feelslike_c !== undefined) ? cur.feelslike_c.toFixed(1)+' °C' : '—' }`;
+
+      humidity.textContent = (cur.humidity !== undefined) ? `${cur.humidity} %` : '-- %';
+      wind.textContent = (cur.wind_kph !== undefined) ? `${cur.wind_kph} kph` : '-- kph';
+      pressure.textContent = (cur.pressure_mb !== undefined) ? `${cur.pressure_mb} mb` : '-- mb';
+      precip.textContent = (cur.precip_mm !== undefined) ? `${cur.precip_mm} mm` : '-- mm';
+      cloud.textContent = (cur.cloud !== undefined) ? `${cur.cloud} %` : '-- %';
+      vis.textContent = (cur.vis_km !== undefined) ? `${cur.vis_km} km` : '-- km';
+
+      country.textContent = `${loc.country || '—'}`;
+      wind_dir.textContent = `${cur.wind_dir || '—'}`;
+      uv.textContent = (cur.uv !== undefined) ? cur.uv : '—';
+      gust.textContent = (cur.gust_kph !== undefined) ? `${cur.gust_kph} kph` : '—';
+      windchill.textContent = (cur.windchill_c !== undefined) ? `${cur.windchill_c} °C` : '—';
+      dewpoint.textContent = (cur.dewpoint_c !== undefined) ? `${cur.dewpoint_c} °C` : '—';
+
+      // Extra fields present in your sample: short_rad, dni, gti (if present)
+      const sr = cur.short_rad !== undefined ? `SR: ${cur.short_rad}` : '';
+      const dni = cur.dni !== undefined ? `DNI: ${cur.dni}` : '';
+      const gti = cur.gti !== undefined ? `GTI: ${cur.gti}` : '';
+      rad.textContent = [sr, dni, gti].filter(Boolean).join(' / ') || '—';
+
+      // hide previous error if any
+      errorMsg.style.display = 'none';
+      errorMsg.textContent = '';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', () => {
+      const q = locInput.value.trim();
+      if (!q) {
+        showError('Please enter a location (city name, address, postal code, or lat,long).');
+        return;
+      }
+      fetchWeather(q);
+    });
+
+    // Allow Enter key in input
+    locInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        searchBtn.click();
+      }
+    });
+
+    // Optional: show example on load
+    document.addEventListener('DOMContentLoaded', () => {
+      // If you want a default city when opening, uncomment below:
+      // locInput.value = "Mumbai";
+      // fetchWeather("Mumbai");
+
+      // For now, keep blank and let user search.
+    });
+  </script>
+</body>
+</html>
